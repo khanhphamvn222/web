@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Link-in-Bio Page</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            background-color: #000; /* Fallback background color */
+        }
+
+        #background-video {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -100;
+            object-fit: cover;
+        }
+
+        .audio-control {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 30px;
+        }
+
+        .audio-icon {
+            font-size: 24px;
+            margin-right: 10px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .volume-slider {
+            width: 80px;
+            appearance: none;
+            height: 5px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            outline: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+        }
+
+        .profile-container {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            width: 320px;
+            transform-style: preserve-3d; /* Needed for tilt effect */
+            transition: transform 0.5s ease;
+        }
+
+        .profile-pic {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+            margin-bottom: 20px;
+            transform: translateZ(30px); /* Makes the image pop out in 3D space */
+        }
+
+        .discord-profile {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 20px 0;
+            border: 2px solid #5865F2;
+            transform: translateZ(20px); /* Makes the image pop out in 3D space */
+        }
+
+        .username {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            transform: translateZ(25px); /* Makes the text pop out in 3D space */
+        }
+
+        .bio {
+            font-size: 1rem;
+            margin-bottom: 20px;
+            opacity: 0.8;
+            transform: translateZ(15px); /* Makes the text pop out in 3D space */
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            transform: translateZ(25px); /* Makes the icons pop out in 3D space */
+        }
+
+        .social-icon {
+            font-size: 24px;
+            color: white;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .social-icon:hover {
+            transform: translateY(-5px);
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Intro screen styles */
+        #intro-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        #enter-button {
+            padding: 15px 40px;
+            font-size: 18px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        #enter-button:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .welcome-text {
+            font-size: 28px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .enter-icon {
+            font-size: 50px;
+            margin-bottom: 20px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Main content initially hidden */
+        #main-content {
+            opacity: 0;
+            transition: opacity 1s ease;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Typing effect cursor style */
+        .typed-cursor {
+            font-weight: 900;
+            color: white;
+            font-size: 1.3em;
+        }
+        .discord-status-container {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 5px 10px;
+            border-radius: 15px;
+            transform: translateZ(20px);
+        }
+        
+        .discord-status-circle {
+            margin-right: 5px;
+        }
+        
+        .discord-activity {
+            margin-top: 10px;
+            font-size: 0.9em;
+            opacity: 0.8;
+            transform: translateZ(15px);
+        }
+            
+    </style>
+</head>
+<body>
+    <!-- Intro Screen -->
+    <div id="intro-screen">
+        <i class="fas fa-door-open enter-icon"></i>
+        <h1 class="welcome-text">Nhấn Vào Đê</h1>
+        <button id="enter-button">Enter Site</button>
+    </div>
+
+    <!-- Main Content (initially hidden) -->
+    <div id="main-content">
+        <!-- Background Video -->
+        <video id="background-video" muted loop playsinline>
+            <source src="https://cdn.discordapp.com/attachments/1233881458104598613/1359083539613749350/tikmate.app_7484764006616435976_hd.mp4?ex=67f97c6e&is=67f82aee&hm=9c174a6562928704f19c772bc610956c7150c6962e2c5897ec40140cefd2b983&">
+            Your browser does not support the video tag.
+        </video>
+
+        <!-- Audio Player -->
+        <audio id="background-music" loop>
+            <source src="https://cdn.discordapp.com/attachments/1233881458104598613/1359083539613749350/tikmate.app_7484764006616435976_hd.mp4?ex=67f97c6e&is=67f82aee&hm=9c174a6562928704f19c772bc610956c7150c6962e2c5897ec40140cefd2b983&" type="audio/mpeg">
+            <source src="your-background-music.ogg" type="audio/ogg">
+            Your browser does not support the audio element.
+        </audio>
+
+        <!-- Audio Controls -->
+        <div class="audio-control">
+            <i id="audio-toggle" class="audio-icon fas fa-volume-up"></i>
+            <input type="range" min="0" max="100" value="50" class="volume-slider" id="volume-control">
+        </div>
+
+        <!-- Profile Container with Tilt Effect -->
+        <div class="profile-container" id="tilt-container">
+            <img src="https://anhanime.com/wp-content/uploads/2022/05/Anh-Luffy-chibi-gear-5.jpg" alt="Profile Picture" class="profile-pic">
+            <h1 class="username" id="typed-username"></h1>
+            <div id="typed-bio-container" style="min-height: 24px;">
+                <span id="typed-bio"></span>
+            </div>
+            <img src="" alt="Discord Profile" class="discord-profile">
+            
+            <!-- Social Media Icons -->
+            <div class="social-links">
+                
+                </a>
+                <a href="https://discord.com/users/1168786059258253332" class="social-icon" target="_blank">
+                    <i class="fab fa-discord"></i>
+                </a>
+           
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- Vanilla Tilt.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.2/vanilla-tilt.min.js"></script>
+    
+    <!-- Typed.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const audioToggle = document.getElementById('audio-toggle');
+            const volumeControl = document.getElementById('volume-control');
+            const backgroundMusic = document.getElementById('background-music');
+            const backgroundVideo = document.getElementById('background-video');
+            const enterButton = document.getElementById('enter-button');
+            const introScreen = document.getElementById('intro-screen');
+            const mainContent = document.getElementById('main-content');
+            let isPlaying = false;
+
+            // Initialize audio
+            backgroundMusic.volume = volumeControl.value / 100;
+            
+            // Enter button click event
+            enterButton.addEventListener('click', function() {
+                // Hide intro screen with fade effect
+                introScreen.style.opacity = '0';
+                setTimeout(() => {
+                    introScreen.classList.add('hidden');
+                    
+                    // Show main content
+                    mainContent.style.opacity = '1';
+                    
+                    // Start playing video
+                    backgroundVideo.play();
+                    
+                    // Start playing music
+                    backgroundMusic.play()
+                        .then(() => {
+                            isPlaying = true;
+                            audioToggle.classList.remove('fa-volume-mute');
+                            audioToggle.classList.add('fa-volume-up');
+                        })
+                        .catch(error => {
+                            console.error("Error playing audio:", error);
+                            // If there's an error, set the icon to muted
+                            audioToggle.classList.remove('fa-volume-up');
+                            audioToggle.classList.add('fa-volume-mute');
+                        });
+                    
+                    // Initialize typing effects after entering the site
+                    initTypingEffects();
+                    
+                    // Initialize tilt effect
+                    initTiltEffect();
+                }, 500);
+            });
+            
+            // Toggle play/pause
+            audioToggle.addEventListener('click', function() {
+                if (isPlaying) {
+                    backgroundMusic.pause();
+                    audioToggle.classList.remove('fa-volume-up', 'fa-volume-down');
+                    audioToggle.classList.add('fa-volume-mute');
+                } else {
+                    backgroundMusic.play()
+                        .then(() => {
+                            updateVolumeIcon();
+                        })
+                        .catch(error => {
+                            console.error("Error playing audio:", error);
+                        });
+                }
+                isPlaying = !isPlaying;
+            });
+            
+            // Volume control
+            volumeControl.addEventListener('input', function() {
+                backgroundMusic.volume = this.value / 100;
+                updateVolumeIcon();
+            });
+            
+            // Function to update the volume icon based on volume level
+            function updateVolumeIcon() {
+                audioToggle.classList.remove('fa-volume-mute', 'fa-volume-down', 'fa-volume-up');
+                
+                if (backgroundMusic.volume === 0) {
+                    audioToggle.classList.add('fa-volume-mute');
+                } else if (backgroundMusic.volume < 0.5) {
+                    audioToggle.classList.add('fa-volume-down');
+                } else {
+                    audioToggle.classList.add('fa-volume-up');
+                }
+            }
+            
+            // Handle page visibility change
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    if (isPlaying) {
+                        backgroundMusic.pause();
+                    }
+                } else {
+                    if (isPlaying && !introScreen.classList.contains('hidden')) {
+                        backgroundMusic.play().catch(e => console.log("Could not resume playback:", e));
+                    }
+                }
+            });
+            
+            // Function to initialize typing effects
+            function initTypingEffects() {
+                // Username typing effect
+                new Typed('#typed-username', {
+                    strings: ['KanePham'],
+                    typeSpeed: 100,
+                    backSpeed: 50,
+                    startDelay: 500,
+                    showCursor: false,
+                    onComplete: function() {
+                        // Start bio typing after username is complete
+                        initBioTyping();
+                    }
+                });
+            }
+            
+            // Function to initialize bio typing effect
+            function initBioTyping() {
+                new Typed('#typed-bio', {
+                    strings: [
+                        'Everything you can imagine is real.',
+                        'Gamer. Creator. Dreamer.',
+                        'Welcome to my world!'
+                    ],
+                    typeSpeed: 50,
+                    backSpeed: 30,
+                    backDelay: 2000,
+                    startDelay: 500,
+                    loop: true,
+                    cursorChar: '_'
+                });
+            }
+            
+            // Function to initialize tilt effect
+            function initTiltEffect() {
+                VanillaTilt.init(document.getElementById('tilt-container'), {
+                    max: 15,
+                    speed: 400,
+                    glare: true,
+                    "max-glare": 0.5,
+                    scale: 1.05
+                });
+            }
+        });
+    </script>
+</body>
+</html>
